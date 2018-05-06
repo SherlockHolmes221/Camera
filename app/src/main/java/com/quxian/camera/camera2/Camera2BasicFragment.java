@@ -436,14 +436,17 @@ public class Camera2BasicFragment extends Fragment
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        //这里获取的是哪里的路径？？
         mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        //有一个后台进程
         startBackgroundThread();
 
+        //开启相机
         // When the screen is turned off and turned back on, the SurfaceTexture is already
         // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
         // a camera and start preview from here (otherwise, we wait until the surface is ready in
@@ -483,7 +486,7 @@ public class Camera2BasicFragment extends Fragment
         }
     }
 
-    /**
+    /**设置了mCameraId
      * Sets up member variables related to camera.
      *
      * @param width  The width of available size for camera preview
@@ -492,9 +495,12 @@ public class Camera2BasicFragment extends Fragment
     @SuppressWarnings("SuspiciousNameCombination")
     private void setUpCameraOutputs(int width, int height) {
         Activity activity = getActivity();
+
+        //摄像头管理器
         CameraManager manager = (CameraManager) activity.getSystemService(Context.CAMERA_SERVICE);
         try {
             for (String cameraId : manager.getCameraIdList()) {
+                //摄像头特性，相当于遍历了摄像头特性
                 CameraCharacteristics characteristics
                         = manager.getCameraCharacteristics(cameraId);
 
@@ -510,6 +516,8 @@ public class Camera2BasicFragment extends Fragment
                     continue;
                 }
 
+                //定义相机的一些参数？？
+                //最大分辨率，显示jpeg的最大分辨率
                 // For still image captures, we use the largest available size.
                 Size largest = Collections.max(
                         Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
@@ -602,6 +610,7 @@ public class Camera2BasicFragment extends Fragment
      * Opens the camera specified by {@link Camera2BasicFragment#mCameraId}.
      */
     private void openCamera(int width, int height) {
+        //申请相机权限
         if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             requestCameraPermission();
@@ -615,6 +624,8 @@ public class Camera2BasicFragment extends Fragment
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
             }
+
+            //开启照相机
             manager.openCamera(mCameraId, mStateCallback, mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -781,6 +792,7 @@ public class Camera2BasicFragment extends Fragment
                     CameraMetadata.CONTROL_AF_TRIGGER_START);
             // Tell #mCaptureCallback to wait for the lock.
             mState = STATE_WAITING_LOCK;
+            //拍照
             mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
                     mBackgroundHandler);
         } catch (CameraAccessException e) {
